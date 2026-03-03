@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Users, Calendar, Image, HelpCircle, UserCog, Settings, Plus, Edit, Trash2, Save, TrendingUp, Heart, Lock, Coins, LogOut, Bell, CheckCheck, X, Phone, MessageCircle, User as UserIcon, Clock, MapPin, Play } from 'lucide-react';
+import { LayoutDashboard, Users, Calendar, Image, HelpCircle, UserCog, Settings, Plus, Edit, Trash2, Save, TrendingUp, Heart, Lock, Coins, LogOut, Bell, CheckCheck, X, Phone, MessageCircle, User as UserIcon, Clock, MapPin, Play, FileText, Palette } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { supabase } from '../supabase';
 import MediaUpload from '../components/MediaUpload';
 
-type AdminTab = 'dashboard' | 'members' | 'events' | 'gallery' | 'quiz' | 'leaders' | 'settings' | 'notifications';
+type AdminTab = 'dashboard' | 'members' | 'events' | 'gallery' | 'quiz' | 'leaders' | 'settings' | 'notifications' | 'materials' | 'palette';
 
 interface Member {
   id: string;
@@ -74,7 +74,27 @@ export default function Admin({ onNavigate }: AdminProps) {
     quizQuestions: 0,
     totalDonations: 0
   });
+  const [exclusiveMaterials, setExclusiveMaterials] = useState<any[]>([]);
+  const [globalPalette, setGlobalPalette] = useState<any[]>([]);
+  const [showMaterialForm, setShowMaterialForm] = useState(false);
+  const [editingMaterialId, setEditingMaterialId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [materialData, setMaterialData] = useState({
+    title: '',
+    type: 'PDF',
+    size: '',
+    url: '',
+    photo_url: '',
+    description: '',
+    category: 'Geral'
+  });
+
+  const [paletteData, setPaletteData] = useState({
+    label: '',
+    color: '#000000'
+  });
+  const [editingPaletteId, setEditingPaletteId] = useState<string | null>(null);
+  const [showPaletteForm, setShowPaletteForm] = useState(false);
 
   const [eventData, setEventData] = useState({
     title: '',
@@ -283,8 +303,13 @@ export default function Admin({ onNavigate }: AdminProps) {
         supabase.from('prayer_requests').select('*').order('created_at', { ascending: false }).limit(10),
         supabase.from('donations').select('*').order('created_at', { ascending: false }).limit(10),
         supabase.from('church_settings').select('*'),
-        supabase.from('events').select('*').order('date', { ascending: false })
+        supabase.from('events').select('*').order('date', { ascending: false }),
+        supabase.from('exclusive_materials').select('*').order('created_at', { ascending: false }),
+        supabase.from('global_palette').select('*').order('created_at', { ascending: true })
       ]);
+
+      setExclusiveMaterials(exclusiveMaterialsList?.data || []);
+      setGlobalPalette(globalPaletteList?.data || []);
 
       setStats({
         totalMembers: memberCount || 0,
@@ -475,6 +500,75 @@ export default function Admin({ onNavigate }: AdminProps) {
     }
   };
 
+  const handleSaveMaterial = async () => {
+    try {
+      if (!materialData.title || !materialData.url) {
+        alert(lang === 'pt' ? 'Preencha os campos obrigatórios' : 'Please fill required fields');
+        return;
+      }
+
+      if (editingMaterialId) {
+        const { error } = await supabase
+          .from('exclusive_materials')
+          .update(materialData)
+          .eq('id', editingMaterialId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('exclusive_materials')
+          .insert([materialData]);
+        if (error) throw error;
+      }
+
+      alert(lang === 'pt' ? 'Salvo com sucesso!' : 'Saved successfully!');
+      setShowMaterialForm(false);
+      setEditingMaterialId(null);
+      setMaterialData({ title: '', type: 'PDF', size: '', url: '', photo_url: '', description: '', category: 'Geral' });
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error saving material:', error);
+      alert('Erro ao salvar material');
+    }
+  };
+
+  const handleDeleteMaterial = async (id: string) => {
+    if (!confirm(lang === 'pt' ? 'Excluir este material?' : 'Delete this material?')) return;
+    try {
+      await supabase.from('exclusive_materials').delete().eq('id', id);
+      fetchDashboardData();
+    } catch (error) {
+      alert('Erro ao excluir');
+    }
+  };
+
+  const handleSavePalette = async () => {
+    try {
+      if (!paletteData.label || !paletteData.color) {
+        alert('Preencha os campos');
+        return;
+      }
+
+      if (editingPaletteId) {
+        await supabase.from('global_palette').update(paletteData).eq('id', editingPaletteId);
+      } else {
+        await supabase.from('global_palette').insert([paletteData]);
+      }
+
+      setShowPaletteForm(false);
+      setEditingPaletteId(null);
+      setPaletteData({ label: '', color: '#000000' });
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error saving palette:', error);
+    }
+  };
+
+  const handleDeletePalette = async (id: string) => {
+    if (!confirm('Excluir cor?')) return;
+    await supabase.from('global_palette').delete().eq('id', id);
+    fetchDashboardData();
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -585,6 +679,8 @@ export default function Admin({ onNavigate }: AdminProps) {
         </div>
       )
     },
+    { key: 'materials', label: lang === 'pt' ? 'Materiais' : 'Materials', icon: <FileText size={18} /> },
+    { key: 'palette', label: lang === 'pt' ? 'Paleta' : 'Palette', icon: <Palette size={18} /> },
   ];
 
   const statCards = [
@@ -2171,6 +2267,237 @@ export default function Admin({ onNavigate }: AdminProps) {
                 </motion.div>
               )}
             </AnimatePresence>
+          </motion.div>
+        )}
+        {/* Materials Management */}
+        {activeTab === 'materials' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="font-serif text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{lang === 'pt' ? 'Materiais Exclusivos' : 'Exclusive Materials'}</h1>
+              <motion.button
+                onClick={() => {
+                  setEditingMaterialId(null);
+                  setMaterialData({ title: '', type: 'PDF', size: '', url: '', photo_url: '', description: '', category: 'Geral' });
+                  setShowMaterialForm(!showMaterialForm);
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white cursor-pointer"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                <Plus size={16} /> {lang === 'pt' ? 'Adicionar Material' : 'Add Material'}
+              </motion.button>
+            </div>
+
+            {showMaterialForm && (
+              <motion.div
+                className="rounded-2xl p-6 mb-6"
+                style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Título</label>
+                    <input
+                      type="text"
+                      value={materialData.title}
+                      onChange={(e) => setMaterialData({ ...materialData, title: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Tipo (PDF, DOCX, etc)</label>
+                    <select
+                      value={materialData.type}
+                      onChange={(e) => setMaterialData({ ...materialData, type: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    >
+                      <option value="PDF">PDF</option>
+                      <option value="DOCX">Word (DOCX)</option>
+                      <option value="XLSX">Excel (XLSX)</option>
+                      <option value="ZIP">ZIP</option>
+                      <option value="IMG">Imagem</option>
+                      <option value="LINK">Link Externo</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Tamanho (Ex: 2.5 MB)</label>
+                    <input
+                      type="text"
+                      value={materialData.size}
+                      onChange={(e) => setMaterialData({ ...materialData, size: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Link do Arquivo (ou URL)</label>
+                    <input
+                      type="text"
+                      value={materialData.url}
+                      onChange={(e) => setMaterialData({ ...materialData, url: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <MediaUpload
+                      label="Foto de Capa do Material"
+                      folder="materials"
+                      currentUrl={materialData.photo_url}
+                      onUploadSuccess={(url) => setMaterialData({ ...materialData, photo_url: url })}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium mb-1">Descrição</label>
+                    <textarea
+                      value={materialData.description}
+                      onChange={(e) => setMaterialData({ ...materialData, description: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none resize-none"
+                      rows={3}
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <motion.button
+                    onClick={handleSaveMaterial}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white cursor-pointer"
+                    style={{ backgroundColor: 'var(--accent)' }}
+                  >
+                    <Save size={14} /> {lang === 'pt' ? 'Salvar' : 'Save'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {exclusiveMaterials.map(mat => (
+                <div key={mat.id} className="p-4 rounded-2xl flex flex-col gap-3" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  {mat.photo_url && <img src={mat.photo_url} className="w-full h-32 object-cover rounded-xl" />}
+                  <div className="flex-1">
+                    <h4 className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{mat.title}</h4>
+                    <p className="text-xs opacity-60" style={{ color: 'var(--text-secondary)' }}>{mat.type} • {mat.size}</p>
+                    <p className="text-xs mt-2 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{mat.description}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setMaterialData(mat);
+                        setEditingMaterialId(mat.id);
+                        setShowMaterialForm(true);
+                      }}
+                      className="p-2 rounded-lg bg-[var(--accent-light)] text-[var(--accent)]"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button onClick={() => handleDeleteMaterial(mat.id)} className="p-2 rounded-lg bg-red-50 text-red-500">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Palette Management */}
+        {activeTab === 'palette' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="font-serif text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{lang === 'pt' ? 'Paleta do Marcador Bíblico' : 'Bible Marker Palette'}</h1>
+              <motion.button
+                onClick={() => setShowPaletteForm(!showPaletteForm)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white cursor-pointer"
+                style={{ backgroundColor: 'var(--accent)' }}
+              >
+                <Plus size={16} /> {lang === 'pt' ? 'Nova Cor' : 'New Color'}
+              </motion.button>
+            </div>
+
+            {showPaletteForm && (
+              <motion.div
+                className="rounded-2xl p-6 mb-6"
+                style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Nome da Marcação (Ex: Inspiração)</label>
+                    <input
+                      type="text"
+                      value={paletteData.label}
+                      onChange={(e) => setPaletteData({ ...paletteData, label: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                      style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1">Cor / Gradiente (CSS)</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="color"
+                        value={paletteData.color.includes('linear') ? '#000000' : paletteData.color}
+                        onChange={(e) => setPaletteData({ ...paletteData, color: e.target.value })}
+                        className="w-10 h-10 p-1 rounded-lg border-0 cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={paletteData.color}
+                        onChange={(e) => setPaletteData({ ...paletteData, color: e.target.value })}
+                        className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none font-mono"
+                        placeholder="Ex: #ff0000 ou linear-gradient(...)"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end mt-4">
+                  <motion.button
+                    onClick={handleSavePalette}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-white cursor-pointer"
+                    style={{ backgroundColor: 'var(--accent)' }}
+                  >
+                    <Save size={14} /> {lang === 'pt' ? 'Salvar Cor' : 'Save Color'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {globalPalette.map(p => (
+                <div key={p.id} className="p-4 rounded-2xl flex items-center gap-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                  <div className="w-12 h-12 rounded-xl shadow-lg" style={{ background: p.color }} />
+                  <div className="flex-1">
+                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>{p.label}</p>
+                    <p className="text-[10px] opacity-40 font-mono">{p.color.slice(0, 20)}...</p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => {
+                        setPaletteData(p);
+                        setEditingPaletteId(p.id);
+                        setShowPaletteForm(true);
+                      }}
+                      className="p-1.5 rounded-lg opacity-40 hover:opacity-100"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button onClick={() => handleDeletePalette(p.id)} className="p-1.5 rounded-lg opacity-40 hover:opacity-100 text-red-500">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {globalPalette.length === 0 && (
+              <div className="text-center py-20 opacity-40">
+                <Palette size={48} className="mx-auto mb-4" />
+                <p>Nenhuma cor padrão cadastrada.</p>
+              </div>
+            )}
           </motion.div>
         )}
         {/* Participation Form Side Panel */}

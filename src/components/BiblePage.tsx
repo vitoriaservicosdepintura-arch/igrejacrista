@@ -163,34 +163,49 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
     /* ─── Fetch palette ─── */
     const loadPalette = useCallback(async () => {
         if (!user) return;
-        const { data, error } = await supabase
-            .from('bible_marker_colors')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: true });
-
-        if (error) {
-            console.error('Error loading palette:', error);
-            return;
-        }
-
-        if (data && data.length > 0) {
-            setPalette(data.map(d => ({ value: d.color, label: d.label, id: d.id })));
-        } else {
-            // If no palette, initialize with defaults
-            const rows = DEFAULT_COLORS.map(c => ({
-                user_id: user.id,
-                label: c.label,
-                color: c.value
-            }));
-            const { data: inserted, error: insErr } = await supabase
+        try {
+            // 1. User's custom palette
+            const { data: userColors } = await supabase
                 .from('bible_marker_colors')
-                .insert(rows)
-                .select();
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: true });
 
-            if (!insErr && inserted) {
-                setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+            if (userColors && userColors.length > 0) {
+                setPalette(userColors.map(d => ({ value: d.color, label: d.label, id: d.id })));
+                return;
             }
+
+            // 2. Global fallback
+            const { data: globalColors } = await supabase
+                .from('global_palette')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (globalColors && globalColors.length > 0) {
+                const rows = globalColors.map(c => ({
+                    user_id: user.id,
+                    label: c.label,
+                    color: c.color
+                }));
+                const { data: inserted } = await supabase.from('bible_marker_colors').insert(rows).select();
+                if (inserted) {
+                    setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+                }
+            } else {
+                // 3. Hardcoded fallback
+                const rows = DEFAULT_COLORS.map(c => ({
+                    user_id: user.id,
+                    label: c.label,
+                    color: c.value
+                }));
+                const { data: inserted } = await supabase.from('bible_marker_colors').insert(rows).select();
+                if (inserted) {
+                    setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+                }
+            }
+        } catch (e) {
+            console.error('Error loading palette:', e);
         }
     }, [user]);
 

@@ -76,25 +76,50 @@ export default function Member() {
   };
 
   const loadPalette = async (uid: string) => {
-    const { data, error } = await supabase
-      .from('bible_marker_colors')
-      .select('*')
-      .eq('user_id', uid)
-      .order('created_at', { ascending: true });
+    try {
+      // 1. Fetch user's custom palette
+      const { data: userPalette, error } = await supabase
+        .from('bible_marker_colors')
+        .select('*')
+        .eq('user_id', uid)
+        .order('created_at', { ascending: true });
 
-    if (data && data.length > 0) {
-      setPalette(data.map(d => ({ value: d.color, label: d.label, id: d.id })));
-    } else if (!error) {
-      // Initialize with defaults if empty
-      const rows = DEFAULT_COLORS.map(c => ({
-        user_id: uid,
-        label: c.label,
-        color: c.value
-      }));
-      const { data: inserted } = await supabase.from('bible_marker_colors').insert(rows).select();
-      if (inserted) {
-        setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+      if (userPalette && userPalette.length > 0) {
+        setPalette(userPalette.map(d => ({ value: d.color, label: d.label, id: d.id })));
+        return;
       }
+
+      // 2. Fallback to Global Palette from Admin
+      const { data: globalColors } = await supabase
+        .from('global_palette')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (globalColors && globalColors.length > 0) {
+        // Clone global to user
+        const rows = globalColors.map(c => ({
+          user_id: uid,
+          label: c.label,
+          color: c.color
+        }));
+        const { data: inserted } = await supabase.from('bible_marker_colors').insert(rows).select();
+        if (inserted) {
+          setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+        }
+      } else {
+        // 3. Fallback to hardcoded defaults
+        const rows = DEFAULT_COLORS.map(c => ({
+          user_id: uid,
+          label: c.label,
+          color: c.value
+        }));
+        const { data: inserted } = await supabase.from('bible_marker_colors').insert(rows).select();
+        if (inserted) {
+          setPalette(inserted.map(d => ({ value: d.color, label: d.label, id: d.id })));
+        }
+      }
+    } catch (err) {
+      console.error('Error loading palette:', err);
     }
   };
 
@@ -143,13 +168,15 @@ export default function Member() {
   const handleShare = async (type: 'wa' | 'mail' | 'copy' | 'image', item: any) => {
     const text = `"${item.verse_text}" — ${item.book_name} ${item.chapter}:${item.verse}\n\n${item.annotation ? `Minha anotação: ${item.annotation}\n\n` : ''}Igreja Cristã: Vivendo a Palavra.`;
     const url = window.location.origin;
+    const photoText = item.photo_url ? `\n🖼️ Veja a foto que anexei: ${item.photo_url}\n` : '';
+    const fullText = `${text}${photoText}\n${url}`;
 
     if (type === 'wa') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text + '\n' + url)}`, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(fullText)}`, '_blank');
     } else if (type === 'mail') {
-      window.open(`mailto:?subject=Versículo Bíblico&body=${encodeURIComponent(text + '\n' + url)}`, '_self');
+      window.open(`mailto:?subject=Versículo Bíblico&body=${encodeURIComponent(fullText)}`, '_self');
     } else if (type === 'copy') {
-      await navigator.clipboard.writeText(text + '\n' + url);
+      await navigator.clipboard.writeText(fullText);
       alert('Copiado para a área de transferência!');
     } else if (type === 'image') {
       setShareItem(item);
@@ -763,30 +790,53 @@ export default function Member() {
                   {materials.map((mat, i) => (
                     <motion.div
                       key={mat.id}
-                      className="flex items-center gap-4 rounded-2xl p-5"
+                      className="flex flex-col rounded-2xl overflow-hidden"
                       style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 4px 20px var(--shadow)', border: '1px solid var(--border)' }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + i * 0.1 }}
+                      whileHover={{ y: -5 }}
                     >
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
-                        <FileText size={22} />
+                      {mat.photo_url && (
+                        <div className="w-full h-40 overflow-hidden">
+                          <img src={mat.photo_url} alt={mat.title} className="w-full h-full object-cover transition-transform hover:scale-105" />
+                        </div>
+                      )}
+                      <div className="p-5 flex flex-col gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+                            <FileText size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{getLocalized(mat.title, lang)}</h4>
+                            <p className="text-[10px] font-bold uppercase opacity-40" style={{ color: 'var(--text-secondary)' }}>{mat.type} • {mat.size}</p>
+                          </div>
+                        </div>
+                        {mat.description && (
+                          <p className="text-xs line-clamp-2" style={{ color: 'var(--text-secondary)' }}>{getLocalized(mat.description, lang)}</p>
+                        )}
+                        <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+                          <Share2
+                            size={16}
+                            className="opacity-20 hover:opacity-100 cursor-pointer transition-opacity"
+                            onClick={() => {
+                              const text = `Confira este material da Igreja Cristã: ${getLocalized(mat.title, lang)}\n${mat.url}`;
+                              window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                            }}
+                          />
+                          <motion.a
+                            href={mat.url !== '#' ? mat.url : undefined}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl cursor-pointer shadow-sm text-xs font-bold"
+                            style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <Download size={14} /> {lang === 'pt' ? 'Baixar' : 'Download'}
+                          </motion.a>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{getLocalized(mat.title, lang)}</h4>
-                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{mat.type} • {mat.size}</p>
-                      </div>
-                      <motion.a
-                        href={mat.url !== '#' ? mat.url : undefined}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center w-10 h-10 rounded-xl cursor-pointer shadow-sm"
-                        style={{ backgroundColor: 'var(--accent)', color: 'white' }}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <Download size={16} />
-                      </motion.a>
                     </motion.div>
                   ))}
                 </div>

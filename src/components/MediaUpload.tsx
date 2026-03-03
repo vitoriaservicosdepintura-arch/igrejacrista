@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface MediaUploadProps {
     onUploadSuccess: (url: string) => void;
-    folder: 'logos' | 'leaders' | 'events' | 'gallery';
+    folder: 'logos' | 'leaders' | 'events' | 'gallery' | 'materials';
     currentUrl?: string;
     label?: string;
     accept?: string;
