@@ -16,7 +16,7 @@ export default function Footer() {
         </svg>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 pt-20 pb-8">
+      <div className="max-w-6xl mx-auto px-4 pt-20" style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom, 0px) + 2rem))' }}>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div>

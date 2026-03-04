@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     BookOpen, ChevronRight, ChevronLeft, Search, PenLine, StickyNote,
-    Share2, X, Bookmark, Palette, Menu, Camera,
-    Trash2, Save, Sun, Moon, Mail, MessageCircle, Copy, Download, Image as ImageIcon, Send
+    X, Bookmark, Palette, Menu, Camera,
+    Trash2, Save, Sun, Moon, Mail, MessageCircle, Copy, Image as ImageIcon
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import confetti from 'canvas-confetti';
@@ -121,6 +121,12 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
     const [viewItem, setViewItem] = useState<SavedItem | null>(null);
     const [sharing, setSharing] = useState(false);
     const shareCardRef = useRef<HTMLDivElement>(null);
+
+    /* ── Church Info from Context ── */
+    const { churchSettings } = useApp();
+    const churchName = churchSettings.church_name;
+    const churchLogoUrl = churchSettings.logo_url || 'https://bolls.life/static/bolls/logo.png';
+    const churchInstagram = churchSettings.instagram;
 
     /* ─── Fetch books ─── */
     useEffect(() => {
@@ -335,7 +341,12 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                 }
             }
 
-            const rows = selectedVerses.map(vNum => ({
+            const sortedVerses = [...selectedVerses].sort((a, b) => a - b);
+            const verseLabel = sortedVerses.length === 1
+                ? `${sortedVerses[0]}`
+                : `${sortedVerses[0]}-${sortedVerses[sortedVerses.length - 1]}`;
+
+            const rows = sortedVerses.map(vNum => ({
                 user_id: user.id,
                 book_id: book.bookid,
                 book_name: book.name,
@@ -347,7 +358,7 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                 photo_url
             }));
 
-            // Save to bible_highlights (for sidebar in BiblePage)
+            // Save to bible_highlights
             const { data: hlData, error: hlError } = await supabase
                 .from('bible_highlights').insert(rows).select('*');
 
@@ -356,22 +367,42 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                 return;
             }
 
-            // Also save to bible_annotations (for Materiais Exclusivos tab)
+            // Save to exclusive_materials with ALL details
             if (hlData && hlData.length > 0) {
-                const annRows = hlData.map(hl => ({
-                    user_id: user.id,
-                    highlight_id: hl.id,
-                    book_name: hl.book_name,
-                    chapter: hl.chapter,
-                    verse: hl.verse,
-                    verse_text: hl.verse_text,
-                    color: hl.color,
-                    annotation: hl.annotation,
-                    photo_url: hl.photo_url,
-                    is_read: false,
-                }));
-                await supabase.from('bible_annotations').insert(annRows);
+                const firstHighlight = hlData[0];
+                const verseTexts = hlData.map(hl => `v.${hl.verse}: ${hl.verse_text}`).join('\n');
+
+                const materialTitle = `📖 ${book.name} ${chapter}:${verseLabel}`;
+                const materialDescription = [
+                    annotation.trim() ? `✏️ ${annotation.trim()}` : '',
+                    verseTexts
+                ].filter(Boolean).join('\n\n');
+
+                const { error: matError } = await supabase
+                    .from('exclusive_materials')
+                    .insert([{
+                        user_id: user.id,
+                        highlight_id: firstHighlight.id,
+                        title: materialTitle,
+                        type: 'MARCADOR',
+                        size: null,
+                        url: null,
+                        photo_url,
+                        description: materialDescription,
+                        category: 'Marcador Bíblico',
+                        color: editorColor,
+                        book_name: book.name,
+                        chapter,
+                        verse: sortedVerses[0],
+                    }]);
+
+                if (matError) {
+                    console.error('Erro ao salvar em Materiais Exclusivos:', matError.message);
+                }
             }
+
+            // Confetti celebration
+            confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
 
             await loadSaved();
             setEditorOpen(false);
@@ -380,6 +411,7 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
             if (onMarkingSaved) onMarkingSaved();
         } finally { setSaving(false); }
     };
+
 
     const handleDelete = async (id: string) => {
         if (!confirm('Remover este item salvo?')) return;
@@ -847,7 +879,7 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                                     </div>
                                     <div className="flex gap-2 flex-wrap bg-[var(--bg-secondary)] p-4 rounded-3xl border border-[var(--border)]">
                                         {palette.map(c => (
-                                            <button key={c.id || c.value} onClick={() => setEditorColor(c.value)} title={c.label}
+                                            <button key={c.value} onClick={() => setEditorColor(c.value)} title={c.label}
                                                 className="w-8 h-8 rounded-full transition-all hover:scale-110 flex items-center justify-center overflow-hidden"
                                                 style={{
                                                     background: c.value,
@@ -935,9 +967,14 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                                     <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ background: viewItem.color }} />
                                 )}
                                 <div className="relative flex justify-between items-center">
-                                    <span className="font-serif font-black text-xl" style={{ color: 'var(--text-primary)' }}>
-                                        {viewItem.book_name} {viewItem.chapter}:{viewItem.verse}
-                                    </span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-[var(--border)] bg-white shrink-0">
+                                            <img src={churchLogoUrl} alt="church logo" className="w-full h-full object-contain" />
+                                        </div>
+                                        <span className="font-serif font-black text-xl" style={{ color: 'var(--text-primary)' }}>
+                                            {viewItem.book_name} {viewItem.chapter}:{viewItem.verse}
+                                        </span>
+                                    </div>
                                     <button onClick={() => setViewItem(null)} className="p-2 rounded-xl hover:bg-black/10 transition">
                                         <X size={18} style={{ color: 'var(--text-primary)' }} />
                                     </button>
@@ -992,38 +1029,63 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
 
                                 {/* Element used only for image capture (hidden in normal view) */}
                                 <div className="fixed -left-[5000px] top-0 pointer-events-none">
-                                    <div ref={shareCardRef} className="w-[400px] p-10 bg-white" style={{ fontFamily: "'Merriweather', Georgia, serif" }}>
-                                        <div className="flex items-center gap-4 mb-8">
-                                            <div className="w-12 h-12 rounded-2xl bg-[var(--accent)] flex items-center justify-center text-white text-xl">✝️</div>
+                                    <div ref={shareCardRef} className="w-[500px] bg-white border border-gray-100" style={{ fontFamily: "'Merriweather', Georgia, serif" }}>
+                                        {/* Premium Header */}
+                                        <div className="flex items-center gap-6 p-8 bg-gray-50 border-b border-gray-100">
+                                            <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-white bg-white shadow-md flex-shrink-0">
+                                                <img src={churchLogoUrl} alt={churchName} className="w-full h-full object-contain" />
+                                            </div>
                                             <div>
-                                                <h4 className="font-bold text-lg text-gray-800">Igreja Cristã</h4>
-                                                <p className="text-xs text-[var(--accent)] font-black uppercase tracking-widest">Vivendo a Palavra</p>
+                                                <h4 className="font-black text-2xl text-gray-900 leading-tight" style={{ fontFamily: 'serif' }}>{churchName}</h4>
+                                                <p className="text-[10px] text-[#6366f1] font-black uppercase tracking-[0.2em] mt-1.5">Igreja Cristã • Vivendo a Palavra</p>
+                                                {churchInstagram && (
+                                                    <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-gray-400">
+                                                        <MessageCircle size={10} className="text-pink-500" />
+                                                        <span>@{churchInstagram.replace(/.*instagram\.com\/([^?/]+).*/, '$1')}</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="relative mb-8 pl-6">
-                                            {viewItem.color.includes('gradient') ? (
-                                                <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-full" style={{ background: viewItem.color }} />
-                                            ) : (
-                                                <div className="absolute left-0 top-0 bottom-0 w-1.5 rounded-full" style={{ backgroundColor: viewItem.color }} />
+
+                                        <div className="p-8">
+                                            <div className="relative mb-10 pl-8">
+                                                <div className="absolute left-0 top-0 bottom-0 w-2 rounded-full" style={{ background: viewItem.color }} />
+                                                <p className="text-3xl leading-relaxed italic text-gray-800 font-serif">"{viewItem.verse_text}"</p>
+                                                <p className="mt-6 font-black text-gray-900 text-base uppercase tracking-widest bg-gray-50 inline-block px-4 py-1.5 rounded-lg border border-gray-100">
+                                                    📖 {viewItem.book_name} {viewItem.chapter}:{viewItem.verse}
+                                                </p>
+                                            </div>
+
+                                            {viewItem.annotation && (
+                                                <div className="mb-10 p-6 bg-[#fffbeb] rounded-[2rem] border border-[#fde68a] shadow-sm">
+                                                    <p className="text-[11px] uppercase font-black text-[#b45309] mb-3 tracking-widest opacity-60">✏️ Reflexão Pessoal</p>
+                                                    <p className="text-base text-gray-700 italic leading-relaxed">"{viewItem.annotation}"</p>
+                                                </div>
                                             )}
-                                            <p className="text-2xl leading-relaxed italic text-gray-700">"{viewItem.verse_text}"</p>
-                                            <p className="mt-4 font-black text-gray-900 text-sm uppercase tracking-wider">{viewItem.book_name} {viewItem.chapter}:{viewItem.verse}</p>
-                                        </div>
-                                        {viewItem.annotation && (
-                                            <div className="mb-8 p-5 bg-gray-50 rounded-3xl border border-gray-100">
-                                                <p className="text-[10px] uppercase font-black opacity-30 mb-2">Reflexão Pessoal</p>
-                                                <p className="text-sm text-gray-600 italic">"{viewItem.annotation}"</p>
+
+                                            {viewItem.photo_url && (
+                                                <div className="mb-10 rounded-[2rem] overflow-hidden border border-gray-100 shadow-xl bg-gray-50">
+                                                    <img src={viewItem.photo_url} alt="photo" className="w-full h-auto max-h-[400px] object-contain" />
+                                                    <div className="p-3 text-center bg-white/50 backdrop-blur-sm border-t border-gray-100">
+                                                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Foto registrada na Igreja</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Área de Membros • {churchName}</p>
+                                                    <p className="text-[11px] font-black text-[var(--accent)] mt-1 opacity-50">#PalavraQueEdifica</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[11px] text-gray-400 font-bold uppercase tracking-tighter">Brasil</p>
+                                                    <p className="text-[10px] text-gray-300 font-medium">{new Date(viewItem.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                                </div>
                                             </div>
-                                        )}
-                                        {viewItem.photo_url && (
-                                            <div className="mb-8 rounded-3xl overflow-hidden shadow-lg">
-                                                <img src={viewItem.photo_url} alt="photo" className="w-full h-48 object-cover" />
-                                            </div>
-                                        )}
-                                        <div className="pt-6 border-t border-gray-100 items-center justify-between flex">
-                                            <p className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">igrejacrista.com.br</p>
-                                            <p className="text-[10px] text-gray-300">{new Date(viewItem.created_at).toLocaleDateString()}</p>
                                         </div>
+
+                                        {/* Bottom Branding Stripe */}
+                                        <div className="h-2 w-full" style={{ background: viewItem.color }} />
                                     </div>
                                 </div>
                             </div>
@@ -1061,7 +1123,7 @@ export default function BiblePage({ onMarkingSaved }: BiblePageProps) {
                                 <div className="p-6 max-h-[70vh] overflow-y-auto space-y-3" style={{ scrollbarWidth: 'thin' }}>
                                     <p className="text-[10px] uppercase font-black opacity-30 tracking-widest mb-4">Seus Marcadores</p>
                                     {palette.map((item, idx) => (
-                                        <div key={item.id || idx} className="flex items-center gap-3 p-3 rounded-2xl border border-[var(--border)] group hover:bg-[var(--bg-secondary)] transition-all">
+                                        <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl border border-[var(--border)] group hover:bg-[var(--bg-secondary)] transition-all">
                                             <div className="w-10 h-10 rounded-xl shadow-inner shrink-0" style={{ background: item.value }} />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs font-black truncate" style={{ color: 'var(--text-primary)' }}>{item.label}</p>

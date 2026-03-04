@@ -28,6 +28,21 @@ interface AppContextType {
     about_us_en: string;
     about_us_es: string;
     facebook: string;
+    hero_title: string;
+    hero_subtitle: string;
+    daily_verse_reference: string;
+    hero_bg_type: 'color' | 'gradient';
+    hero_bg_color: string;
+    hero_bg_gradient: string;
+    hero_slide_bg_1?: string;
+    hero_slide_bg_2?: string;
+    hero_slide_bg_3?: string;
+    hero_slide_bg_4?: string;
+    hero_slide_bg_5?: string;
+    donation_pix_key?: string;
+    donation_pix_qrcode_url?: string;
+    donation_mbway_key?: string;
+    donation_bank_transfer?: string;
   };
   t: (key: string) => string;
   user: User | null;
@@ -64,8 +79,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     about_us_pt: 'Resgatando vidas através do evangelho de Jesus Cristo.',
     about_us_en: 'Rescuing lives through the gospel of Jesus Christ.',
     about_us_es: 'Rescatando vidas a través del evangelio de Jesucristo.',
-    facebook: 'facebook.com/igrejacrista'
+    facebook: 'facebook.com/igrejacrista',
+    hero_title: 'Bem-vindo à Assembleia de Deus Bereana',
+    hero_subtitle: 'Conectando vidas através da fé, amor e esperança',
+    daily_verse_content: 'E conhecereis a verdade, e a verdade vos libertará.',
+    daily_verse_reference: 'João 8:32',
+    hero_bg_type: 'gradient' as 'color' | 'gradient',
+    hero_bg_color: '#1a1a1a',
+    hero_bg_gradient: 'linear-gradient(135deg, #1a1a1a, #4a3e1a, #1a1a1a)',
+    hero_slide_bg_1: '#1a1a1a',
+    hero_slide_bg_2: '#1a1a1a',
+    hero_slide_bg_3: '#1a1a1a',
+    hero_slide_bg_4: '#1a1a1a',
+    hero_slide_bg_5: '#1a1a1a',
+    donation_pix_key: '',
+    donation_pix_qrcode_url: '',
+    donation_mbway_key: '',
+    donation_bank_transfer: ''
   });
+
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = localStorage.getItem('church-theme');
     if (saved) return saved as Theme;
@@ -168,8 +200,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Auto login to establish Supabase session 
-      // (Since we have an auto-confirm DB trigger, this will succeed)
       const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
       if (loginError) throw loginError;
 

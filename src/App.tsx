@@ -24,7 +24,12 @@ function AppContent() {
       return;
     }
     setPage(p as Page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // iOS scroll to top compatible
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      window.scrollTo(0, 0);
+    }
   };
 
   useEffect(() => {
@@ -42,6 +47,38 @@ function AppContent() {
   useEffect(() => {
     window.location.hash = page;
   }, [page]);
+
+  // ── Corrige altura no iOS Safari (100vh bug) ──
+  useEffect(() => {
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    setVh();
+    window.addEventListener('resize', setVh);
+    window.addEventListener('orientationchange', setVh);
+    return () => {
+      window.removeEventListener('resize', setVh);
+      window.removeEventListener('orientationchange', setVh);
+    };
+  }, []);
+
+  // ── Previne bounce do iOS no overscroll ──
+  useEffect(() => {
+    const preventBounce = (e: TouchEvent) => {
+      // Só previne se não está em elemento com scroll
+      const target = e.target as HTMLElement;
+      let el: HTMLElement | null = target;
+      while (el && el !== document.documentElement) {
+        const style = window.getComputedStyle(el);
+        const overflow = style.overflowY;
+        if (overflow === 'auto' || overflow === 'scroll') return; // deixa scroll local funcionar
+        el = el.parentElement;
+      }
+    };
+    document.addEventListener('touchmove', preventBounce, { passive: true });
+    return () => document.removeEventListener('touchmove', preventBounce);
+  }, []);
 
   const showFooter = page !== 'admin';
 

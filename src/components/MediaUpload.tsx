@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface MediaUploadProps {
     onUploadSuccess: (url: string) => void;
-    folder: 'logos' | 'leaders' | 'events' | 'gallery' | 'materials';
+    folder: 'logos' | 'leaders' | 'events' | 'gallery' | 'materials' | 'hero';
     currentUrl?: string;
     label?: string;
     accept?: string;
@@ -34,7 +34,12 @@ export default function MediaUpload({ onUploadSuccess, folder, currentUrl, label
                 .from('images')
                 .upload(filePath, file);
 
-            if (uploadError) throw uploadError;
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                alert(`Erro no upload: ${uploadError.message}`);
+                setUploading(false);
+                return;
+            }
 
             // Get Public URL
             const { data: { publicUrl } } = supabase.storage
@@ -77,7 +82,7 @@ export default function MediaUpload({ onUploadSuccess, folder, currentUrl, label
                             exit={{ opacity: 0 }}
                             className="absolute inset-0 w-full h-full flex flex-col items-center justify-center bg-black/5"
                         >
-                            {preview.match(/\.(mp4|webm|ogg)$/) ? (
+                            {preview.match(/\.(mp4|webm|ogg)$/i) ? (
                                 <video src={preview} className="w-full h-full object-cover" controls />
                             ) : (
                                 <img src={preview} alt="Preview" className="w-full h-full object-cover" />
