@@ -719,7 +719,7 @@ export default function Admin({ onNavigate }: AdminProps) {
         <motion.div
           initial={{ x: -280 }}
           animate={{ x: 0 }}
-          className="w-72 border-r border-white/10 flex flex-col sticky top-0 h-screen z-50 backdrop-blur-xl bg-black/60"
+          className="hidden lg:flex w-72 border-r border-white/10 flex-col sticky top-0 h-screen z-50 backdrop-blur-xl bg-black/60"
         >
           <div className="p-6 h-full flex flex-col">
             <h2 className="font-serif text-lg font-bold mb-6 text-white">
@@ -1776,15 +1776,23 @@ export default function Admin({ onNavigate }: AdminProps) {
           {/* Settings */}
           {
             activeTab === 'settings' && (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="font-serif text-2xl font-bold mb-8" style={{ color: 'var(--text-primary)' }}>{t('admin.settings')}</h1>
-                <div className="rounded-2xl p-6" style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 4px 20px var(--shadow)', border: '1px solid var(--border)' }}>
-                  <h3 className="font-semibold mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                    <Edit size={20} className="text-[var(--accent)]" /> {lang === 'pt' ? 'Editor do Site' : 'Site Editor'}
-                  </h3>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10"
+                style={{ paddingBottom: 'max(2rem, calc(env(safe-area-inset-bottom, 0px) + 5rem))' }}
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-8">
+                  <h1 className="font-serif text-2xl sm:text-4xl font-bold flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
+                    <Settings className="text-[var(--accent)] shrink-0" size={28} />
+                    {lang === 'pt' ? 'Configurações do Sistema' : 'System Settings'}
+                  </h1>
+                </div>
 
-                  <div className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid lg:grid-cols-3 gap-6 sm:gap-10">
+                  <div className="lg:col-span-2 space-y-6 sm:space-y-10">
+                    <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                       <div>
                         <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-secondary)' }}>{lang === 'pt' ? 'Nome da Igreja' : 'Church Name'}</label>
                         <input
@@ -1959,170 +1967,114 @@ export default function Admin({ onNavigate }: AdminProps) {
                             <Plus size={14} /> {lang === 'pt' ? 'Novo Versículo' : 'New Verse'}
                           </button>
                         </div>
-
-                        <AnimatePresence>
-                          {showVerseForm && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="p-4 rounded-2xl space-y-4 bg-[var(--bg-secondary)] border border-[var(--border)] overflow-hidden"
-                            >
-                              <div>
-                                <label className="block text-[10px] font-bold uppercase mb-1 opacity-50">{lang === 'pt' ? 'Texto do Versículo' : 'Verse Text'}</label>
-                                <textarea
-                                  value={newVerse.content}
-                                  onChange={e => setNewVerse({ ...newVerse, content: e.target.value })}
-                                  rows={2}
-                                  className="w-full px-3 py-2 rounded-xl text-sm outline-none resize-none"
-                                  style={{ border: '1px solid var(--border)' }}
-                                  placeholder='"O Senhor é meu pastor..."'
-                                />
-                              </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                  <label className="block text-[10px] font-bold uppercase mb-1 opacity-50">{lang === 'pt' ? 'Referência' : 'Reference'}</label>
-                                  <input
-                                    type="text"
-                                    value={newVerse.reference}
-                                    onChange={e => setNewVerse({ ...newVerse, reference: e.target.value })}
-                                    className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                                    style={{ border: '1px solid var(--border)' }}
-                                    placeholder="Salmos 23:1"
-                                  />
-                                </div>
-                                <div className="flex items-end gap-2">
-                                  <button onClick={handleSaveVerse} className="flex-1 py-2 rounded-xl bg-[var(--accent)] text-white font-bold text-xs uppercase shadow-lg shadow-yellow-500/20">
-                                    {lang === 'pt' ? 'Salvar' : 'Save'}
-                                  </button>
-                                  <button onClick={() => setShowVerseForm(false)} className="px-4 py-2 rounded-xl font-bold text-xs uppercase opacity-40">
-                                    {lang === 'pt' ? 'Cancelar' : 'Cancel'}
-                                  </button>
-                                </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-
-                        <div className="grid sm:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                        <div className="grid gap-3">
                           {heroVerses.map(v => (
-                            <div key={v.id} className="p-4 rounded-2xl group relative" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
-                              <p className="text-sm font-serif italic mb-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>"{v.content}"</p>
-                              <p className="text-xs font-bold opacity-50" style={{ color: 'var(--accent)' }}>{v.reference}</p>
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                            <div key={v.id} className="p-4 rounded-xl flex items-center justify-between gap-4" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium italic line-clamp-2" style={{ color: 'var(--text-primary)' }}>&ldquo;{v.content}&rdquo;</p>
+                                <p className="text-[10px] font-bold uppercase opacity-50 mt-1" style={{ color: 'var(--text-secondary)' }}>{v.reference}</p>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
                                 <button
                                   onClick={() => { setEditingVerseId(v.id); setNewVerse({ content: v.content, reference: v.reference }); setShowVerseForm(true); }}
-                                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-blue-500"
+                                  className="p-2 rounded-lg hover:bg-[var(--accent)]/10 text-[var(--accent)] transition-colors cursor-pointer"
                                 >
-                                  <Edit size={12} />
+                                  <Edit size={16} />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteVerse(v.id)}
-                                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-red-500"
+                                  className="p-2 rounded-lg hover:bg-red-500/10 text-red-500 transition-colors cursor-pointer"
                                 >
-                                  <Trash2 size={12} />
+                                  <Trash2 size={16} />
                                 </button>
                               </div>
                             </div>
                           ))}
-                        </div>
-                      </div>
-
-                      <div className="p-6 rounded-3xl space-y-4" style={{ backgroundColor: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
-                        <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--accent)' }}>
-                          <Star size={14} /> {lang === 'pt' ? 'Versículo do Dia (Principal)' : 'Verse of the Day (Featured)'}
-                        </h4>
-                        <div className="grid gap-4">
-                          <textarea
-                            value={churchSettings.daily_verse_content}
-                            onChange={(e) => setChurchSettings({ ...churchSettings, daily_verse_content: e.target.value })}
-                            className="w-full px-4 py-3 rounded-2xl text-sm italic font-serif outline-none border border-transparent focus:border-[var(--accent)] transition-all resize-none"
-                            rows={3}
-                            placeholder={lang === 'pt' ? 'Texto do versículo que aparece no destaque...' : 'Text of the verse that appears in the spotlight...'}
-                          />
-                          <input
-                            type="text"
-                            value={churchSettings.daily_verse_reference}
-                            onChange={(e) => setChurchSettings({ ...churchSettings, daily_verse_reference: e.target.value })}
-                            className="w-full px-4 py-3 rounded-2xl text-sm font-bold outline-none border border-transparent focus:border-[var(--accent)] transition-all"
-                            placeholder={lang === 'pt' ? 'Referência (Ex: João 3:16)' : 'Reference (Ex: John 3:16)'}
-                          />
-                        </div>
-                      </div>
+                          {heroVerses.length === 0 && (
+                            <div className="text-center py-8 opacity-40 border-2 border-dashed rounded-2xl" style={{ borderColor: 'var(--border)' }}>
+                              <p className="text-sm">{lang === 'pt' ? 'Nenhum versículo cadastrado' : 'No verses registered'}</p>
+                            </div>
+                          )}
+                        </div>                      </div>
                     </div>
 
-                    <div className="p-6 rounded-3xl space-y-4" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
-                      <h4 className="text-xs font-black uppercase tracking-widest flex items-center gap-2 mb-4" style={{ color: 'var(--accent)' }}>
-                        <Coins size={14} /> {lang === 'pt' ? 'Configurações de Doação' : 'Donation Settings'}
-                      </h4>
-                      <div className="grid md:grid-cols-3 gap-4">
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase mb-1 opacity-50">{lang === 'pt' ? 'Chave PIX' : 'PIX Key'}</label>
-                          <input
-                            type="text"
-                            value={churchSettings.donation_pix_key}
-                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_pix_key: e.target.value })}
-                            className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                            style={{ border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-primary)' }}
-                            placeholder="Ex: 12.345.678/0001-90"
-                          />
+                    {/* 3rd Column: Donation & Actions */}
+                    <div className="space-y-6">
+                      <div className="rounded-2xl p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 4px 20px var(--shadow)' }}>
+                        <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                          <Heart className="text-[var(--accent)]" size={20} />
+                          {lang === 'pt' ? 'Configurações de Doação' : 'Donation Settings'}
+                        </h3>
 
-                          <div className="mt-4">
-                            <label className="block text-[10px] font-bold uppercase mb-2 opacity-50">{lang === 'pt' ? 'Upload QR Code PIX (Opcional)' : 'Upload PIX QR Code (Optional)'}</label>
+                        <div className="space-y-5">
+                          <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Chave PIX (Brasil)</label>
+                            <input
+                              type="text"
+                              value={churchSettings.donation_pix_key}
+                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_pix_key: e.target.value })}
+                              placeholder="CPF, Email, Telefone ou Aleatória"
+                              className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
+                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                            />
+                          </div>
+
+                          <div>
                             <MediaUpload
-                              bucketName="images"
-                              folderPath="church_assets"
+                              label="QR Code PIX (Opcional)"
+                              folder="donations"
                               currentUrl={churchSettings.donation_pix_qrcode_url}
                               onUploadSuccess={(url) => setChurchSettings({ ...churchSettings, donation_pix_qrcode_url: url })}
-                              label={lang === 'pt' ? 'QR Code do PIX' : 'PIX QR Code'}
-                              maxSizeMB={2}
-                              acceptedFormats="image/jpeg,image/png,image/webp"
                             />
-                            {churchSettings.donation_pix_qrcode_url && (
-                              <button
-                                onClick={() => setChurchSettings({ ...churchSettings, donation_pix_qrcode_url: '' })}
-                                className="mt-2 text-[10px] uppercase text-red-500 font-bold hover:underline"
-                              >
-                                {lang === 'pt' ? 'Remover QR Code' : 'Remove QR Code'}
-                              </button>
-                            )}
+                          </div>
+
+                          <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Número MBWay (Portugal)</label>
+                            <input
+                              type="text"
+                              value={churchSettings.donation_mbway_key}
+                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_mbway_key: e.target.value })}
+                              placeholder="9xx xxx xxx"
+                              className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
+                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                            />
+                          </div>
+
+                          <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">IBAN (Transferência)</label>
+                            <textarea
+                              value={churchSettings.donation_bank_transfer}
+                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_bank_transfer: e.target.value })}
+                              placeholder="PT50 0000 0000 ..."
+                              className="w-full px-4 py-3 border rounded-xl text-sm font-mono outline-none resize-none"
+                              rows={3}
+                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                            />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase mb-1 opacity-50">{lang === 'pt' ? 'Número MBWay' : 'MBWay Number'}</label>
-                          <input
-                            type="text"
-                            value={churchSettings.donation_mbway_key}
-                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_mbway_key: e.target.value })}
-                            className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                            style={{ border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-primary)' }}
-                            placeholder="Ex: +351 912 345 678"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-[10px] font-bold uppercase mb-1 opacity-50">{lang === 'pt' ? 'Transferência Bancária (IBAN)' : 'Bank Transfer (IBAN)'}</label>
-                          <input
-                            type="text"
-                            value={churchSettings.donation_bank_transfer}
-                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_bank_transfer: e.target.value })}
-                            className="w-full px-3 py-2 rounded-xl text-sm outline-none"
-                            style={{ border: '1px solid var(--border)', backgroundColor: 'transparent', color: 'var(--text-primary)' }}
-                            placeholder="Ex: PT50 1234..."
-                          />
-                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex justify-end pt-4">
+                      {/* Global Save Button */}
                       <motion.button
                         onClick={handleSaveSettings}
-                        className="flex items-center gap-2 px-8 py-3.5 rounded-xl text-sm font-bold text-white cursor-pointer"
-                        style={{ backgroundColor: 'var(--accent)', boxShadow: '0 4px 15px var(--accent-light)' }}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="w-full py-5 rounded-2xl bg-[var(--accent)] text-white font-black text-sm tracking-[0.15em] shadow-xl flex items-center justify-center gap-3 cursor-pointer"
+                        whileHover={{ scale: 1.02, boxShadow: '0 10px 30px var(--accent-light)' }}
+                        whileTap={{ scale: 0.98 }}
                       >
-                        <Save size={18} /> {lang === 'pt' ? 'Salvar Configurações' : 'Save Settings'}
+                        <Save size={20} />
+                        {lang === 'pt' ? 'SALVAR TODAS CONFIGURAÇÕES' : 'SAVE ALL SETTINGS'}
                       </motion.button>
+
+                      <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <HelpCircle size={14} /> Dica do Sistema
+                        </p>
+                        <p className="text-xs leading-relaxed opacity-60">
+                          {lang === 'pt'
+                            ? 'As opções de doação na página inicial só aparecerão se todos os campos acima (PIX, MBWay e IBAN) estiverem preenchidos.'
+                            : 'Donation options on the homepage will only appear if all fields above (PIX, MBWay, and IBAN) are filled.'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2744,6 +2696,75 @@ export default function Admin({ onNavigate }: AdminProps) {
               </motion.div>
             )
           }
+          {/* Verse Form Side Panel */}
+          <AnimatePresence>
+            {showVerseForm && (
+              <motion.div
+                className="fixed top-0 right-0 h-full w-full max-w-[420px] z-[150] flex flex-col overflow-y-auto shadow-2xl"
+                style={{ backgroundColor: 'var(--bg-card)', borderLeft: '1px solid var(--border)' }}
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+              >
+                <div className="flex items-center justify-between p-6 border-b shrink-0" style={{ borderColor: 'var(--border)' }}>
+                  <h2 className="font-serif font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
+                    {editingVerseId ? (lang === 'pt' ? 'Editar Versículo' : 'Edit Verse') : (lang === 'pt' ? 'Novo Versículo' : 'New Verse')}
+                  </h2>
+                  <button
+                    onClick={() => setShowVerseForm(false)}
+                    className="p-2 rounded-xl cursor-pointer transition hover:opacity-70"
+                    style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6 flex-1">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-secondary)' }}>
+                        {lang === 'pt' ? 'Texto do Versículo' : 'Verse Text'}
+                      </label>
+                      <textarea
+                        value={newVerse.content}
+                        onChange={(e) => setNewVerse({ ...newVerse, content: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium resize-none shadow-sm"
+                        rows={5}
+                        placeholder={lang === 'pt' ? 'Digite o versículo...' : 'Type the verse...'}
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase mb-2" style={{ color: 'var(--text-secondary)' }}>
+                        {lang === 'pt' ? 'Referência' : 'Reference'}
+                      </label>
+                      <input
+                        type="text"
+                        value={newVerse.reference}
+                        onChange={(e) => setNewVerse({ ...newVerse, reference: e.target.value })}
+                        className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium shadow-sm"
+                        placeholder="Ex: João 3:16"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                      />
+                    </div>
+                  </div>
+
+                  <motion.button
+                    onClick={handleSaveVerse}
+                    className="w-full py-4 rounded-xl font-bold text-white text-sm shadow-lg shadow-blue-500/20 cursor-pointer"
+                    style={{ backgroundColor: 'var(--accent)' }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {lang === 'pt' ? 'Salvar Versículo' : 'Save Verse'}
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Participation Form Side Panel */}
           <AnimatePresence>
             {showParticipationForm && (

@@ -460,14 +460,14 @@ export default function Member() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 py-20" style={{ backgroundColor: 'var(--bg-secondary)' }}>
+      <div className="min-h-screen flex items-center justify-center px-4 py-12 sm:py-20" style={{ backgroundColor: 'var(--bg-secondary)', paddingTop: 'calc(env(safe-area-inset-top, 0px) + 3rem)' }}>
         <motion.div
-          className="w-full max-w-md rounded-2xl p-8"
+          className="w-full max-w-md rounded-3xl p-6 sm:p-8"
           style={{ backgroundColor: 'var(--bg-card)', boxShadow: '0 8px 40px var(--shadow)', border: '1px solid var(--border)' }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="text-center mb-8">
+          <div className="text-center mb-6 sm:mb-8">
             <motion.div
               className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
               style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}
@@ -633,7 +633,7 @@ export default function Member() {
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Header Banner */}
       <section
-        className="pt-24 pb-20 px-4 text-white relative overflow-hidden"
+        className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 text-white relative overflow-hidden"
         style={{ background: 'linear-gradient(135deg, var(--gradient-start), var(--gradient-end))' }}
       >
         {/* Decorative background elements */}
@@ -643,10 +643,10 @@ export default function Member() {
         </div>
 
         <div className="max-w-4xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6 sm:gap-8">
             <motion.div
               onClick={() => setActiveTab('profile')}
-              className="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-black shrink-0 border-4 border-white/30 shadow-[0_0_50px_rgba(255,255,255,0.1)] bg-white/10 backdrop-blur-md overflow-hidden relative group cursor-pointer"
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-full flex items-center justify-center text-4xl font-black shrink-0 border-4 border-white/30 shadow-2xl bg-white/10 backdrop-blur-md overflow-hidden relative group cursor-pointer"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               whileHover={{ scale: 1.05 }}
@@ -758,22 +758,23 @@ export default function Member() {
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap">
           {tabs.map(tab => (
             <motion.button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition cursor-pointer"
+              className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0"
               style={{
-                backgroundColor: activeTab === tab.key ? 'var(--accent)' : 'var(--bg-secondary)',
+                backgroundColor: activeTab === tab.key ? 'var(--accent)' : 'var(--bg-card)',
                 color: activeTab === tab.key ? 'white' : 'var(--text-primary)',
                 border: `1px solid ${activeTab === tab.key ? 'var(--accent)' : 'var(--border)'}`,
+                boxShadow: activeTab === tab.key ? '0 10px 20px -5px var(--accent-light)' : 'none',
               }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
             >
               {tab.icon}
-              {tab.label}
+              <span className="whitespace-nowrap">{tab.label}</span>
             </motion.button>
           ))}
         </div>

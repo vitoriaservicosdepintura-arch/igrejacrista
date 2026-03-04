@@ -1164,7 +1164,7 @@ export default function Home({ onNavigate }: { onNavigate: (page: string) => voi
           </motion.h2>
 
           {/* Check if donation is configured */}
-          {!(churchSettings.donation_pix_key || churchSettings.donation_mbway_key || churchSettings.donation_bank_transfer) ? (
+          {!(churchSettings.donation_pix_key && churchSettings.donation_mbway_key && churchSettings.donation_bank_transfer) ? (
             /* ── EM MANUTENÇÃO ── */
             <motion.div
               className="mt-4 flex flex-col items-center justify-center gap-4"
