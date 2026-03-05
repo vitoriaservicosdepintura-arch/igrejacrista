@@ -61,6 +61,7 @@ export default function FloatingButtons() {
         if (!prayerForm.name || !prayerForm.phone) return;
         setPrayerLoading(true);
         try {
+            // 1. Salva em prayer_requests (para admin)
             const { data: requestData, error: requestError } = await supabase.from('prayer_requests').insert([{
                 name: prayerForm.name,
                 phone: prayerForm.phone,
@@ -70,7 +71,22 @@ export default function FloatingButtons() {
 
             if (requestError) throw requestError;
 
-            // Admin notification
+            // 2. Insere também no prayer_wall (para membros interagirem)
+            await supabase.from('prayer_wall').insert([{
+                name: prayerForm.name,
+                text: prayerForm.message
+                    ? prayerForm.message
+                    : (lang === 'pt'
+                        ? '🙏 Pedido de oração anônimo — ore por esta pessoa!'
+                        : '🙏 Anonymous prayer request — please pray for this person!'),
+                prayers_count: 0,
+                source: 'public',
+                phone: prayerForm.phone,
+                email: prayerForm.email || null,
+                prayer_request_id: requestData?.id || null,
+            }]);
+
+            // 3. Notificação para admin
             await supabase.from('notifications').insert([{
                 type: 'prayer_request',
                 title: lang === 'pt' ? '🙏 Novo Pedido de Oração' : '🙏 New Prayer Request',

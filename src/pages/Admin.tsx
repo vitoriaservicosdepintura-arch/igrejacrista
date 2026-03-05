@@ -1995,86 +1995,87 @@ export default function Admin({ onNavigate }: AdminProps) {
                               <p className="text-sm">{lang === 'pt' ? 'Nenhum versículo cadastrado' : 'No verses registered'}</p>
                             </div>
                           )}
-                        </div>                      </div>
-                    </div>
-
-                    {/* 3rd Column: Donation & Actions */}
-                    <div className="space-y-6">
-                      <div className="rounded-2xl p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 4px 20px var(--shadow)' }}>
-                        <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                          <Heart className="text-[var(--accent)]" size={20} />
-                          {lang === 'pt' ? 'Configurações de Doação' : 'Donation Settings'}
-                        </h3>
-
-                        <div className="space-y-5">
-                          <div>
-                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Chave PIX (Brasil)</label>
-                            <input
-                              type="text"
-                              value={churchSettings.donation_pix_key}
-                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_pix_key: e.target.value })}
-                              placeholder="CPF, Email, Telefone ou Aleatória"
-                              className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
-                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                            />
-                          </div>
-
-                          <div>
-                            <MediaUpload
-                              label="QR Code PIX (Opcional)"
-                              folder="donations"
-                              currentUrl={churchSettings.donation_pix_qrcode_url}
-                              onUploadSuccess={(url) => setChurchSettings({ ...churchSettings, donation_pix_qrcode_url: url })}
-                            />
-                          </div>
-
-                          <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Número MBWay (Portugal)</label>
-                            <input
-                              type="text"
-                              value={churchSettings.donation_mbway_key}
-                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_mbway_key: e.target.value })}
-                              placeholder="9xx xxx xxx"
-                              className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
-                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                            />
-                          </div>
-
-                          <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                            <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">IBAN (Transferência)</label>
-                            <textarea
-                              value={churchSettings.donation_bank_transfer}
-                              onChange={(e) => setChurchSettings({ ...churchSettings, donation_bank_transfer: e.target.value })}
-                              placeholder="PT50 0000 0000 ..."
-                              className="w-full px-4 py-3 border rounded-xl text-sm font-mono outline-none resize-none"
-                              rows={3}
-                              style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
-                            />
-                          </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
 
-                      {/* Global Save Button */}
-                      <motion.button
-                        onClick={handleSaveSettings}
-                        className="w-full py-5 rounded-2xl bg-[var(--accent)] text-white font-black text-sm tracking-[0.15em] shadow-xl flex items-center justify-center gap-3 cursor-pointer"
-                        whileHover={{ scale: 1.02, boxShadow: '0 10px 30px var(--accent-light)' }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <Save size={20} />
-                        {lang === 'pt' ? 'SALVAR TODAS CONFIGURAÇÕES' : 'SAVE ALL SETTINGS'}
-                      </motion.button>
+                  {/* 3rd Column: Donation & Actions */}
+                  <div className="space-y-6">
+                    <div className="rounded-2xl p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border)', boxShadow: '0 4px 20px var(--shadow)' }}>
+                      <h3 className="font-bold text-lg mb-6 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                        <Heart className="text-[var(--accent)]" size={20} />
+                        {lang === 'pt' ? 'Configurações de Doação' : 'Donation Settings'}
+                      </h3>
 
-                      <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
-                        <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <HelpCircle size={14} /> Dica do Sistema
-                        </p>
-                        <p className="text-xs leading-relaxed opacity-60">
-                          {lang === 'pt'
-                            ? 'As opções de doação na página inicial só aparecerão se todos os campos acima (PIX, MBWay e IBAN) estiverem preenchidos.'
-                            : 'Donation options on the homepage will only appear if all fields above (PIX, MBWay, and IBAN) are filled.'}
-                        </p>
+                      <div className="space-y-5">
+                        <div>
+                          <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Chave PIX (Brasil)</label>
+                          <input
+                            type="text"
+                            value={churchSettings.donation_pix_key}
+                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_pix_key: e.target.value })}
+                            placeholder="CPF, Email, Telefone ou Aleatória"
+                            className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
+                            style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                          />
+                        </div>
+
+                        <div>
+                          <MediaUpload
+                            label="QR Code PIX (Opcional)"
+                            folder="donations"
+                            currentUrl={churchSettings.donation_pix_qrcode_url}
+                            onUploadSuccess={(url) => setChurchSettings({ ...churchSettings, donation_pix_qrcode_url: url })}
+                          />
+                        </div>
+
+                        <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">Número MBWay (Portugal)</label>
+                          <input
+                            type="text"
+                            value={churchSettings.donation_mbway_key}
+                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_mbway_key: e.target.value })}
+                            placeholder="9xx xxx xxx"
+                            className="w-full px-4 py-3 rounded-xl text-sm outline-none font-medium"
+                            style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                          />
+                        </div>
+
+                        <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                          <label className="block text-[10px] font-black uppercase tracking-widest mb-1.5 opacity-50 ml-1">IBAN (Transferência)</label>
+                          <textarea
+                            value={churchSettings.donation_bank_transfer}
+                            onChange={(e) => setChurchSettings({ ...churchSettings, donation_bank_transfer: e.target.value })}
+                            placeholder="PT50 0000 0000 ..."
+                            className="w-full px-4 py-3 border rounded-xl text-sm font-mono outline-none resize-none"
+                            rows={3}
+                            style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}
+                          />
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Global Save Button */}
+                    <motion.button
+                      onClick={handleSaveSettings}
+                      className="w-full py-5 rounded-2xl bg-[var(--accent)] text-white font-black text-sm tracking-[0.15em] shadow-xl flex items-center justify-center gap-3 cursor-pointer"
+                      whileHover={{ scale: 1.02, boxShadow: '0 10px 30px var(--accent-light)' }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Save size={20} />
+                      {lang === 'pt' ? 'SALVAR TODAS CONFIGURAÇÕES' : 'SAVE ALL SETTINGS'}
+                    </motion.button>
+
+                    <div className="p-5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+                      <p className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <HelpCircle size={14} /> Dica do Sistema
+                      </p>
+                      <p className="text-xs leading-relaxed opacity-60">
+                        {lang === 'pt'
+                          ? 'As opções de doação na página inicial só aparecerão se todos os campos acima (PIX, MBWay e IBAN) estiverem preenchidos.'
+                          : 'Donation options on the homepage will only appear if all fields above (PIX, MBWay, and IBAN) are filled.'}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2869,6 +2870,6 @@ export default function Admin({ onNavigate }: AdminProps) {
           </AnimatePresence>
         </main>
       </div>
-    </div>
+    </div >
   );
 }

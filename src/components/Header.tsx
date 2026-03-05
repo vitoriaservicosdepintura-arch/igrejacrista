@@ -18,7 +18,18 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
   const [showLang, setShowLang] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // Detecção RIGOROSA de sistema mobile (Exclui Windows/Mac/Linux desktop)
+  useEffect(() => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobileOS = /android|iphone|ipad|ipod|windows phone/i.test(userAgent);
+    const isDesktopOS = /windows nt|macintosh|linux x11/i.test(userAgent);
+
+    // Só é mobile se tiver o OS mobile e NÃO for um PC/Mac
+    setIsMobileDevice(isMobileOS && !isDesktopOS);
+  }, []);
 
   // Fecha menus ao clicar fora
   useEffect(() => {
@@ -82,7 +93,6 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
         backgroundColor: 'var(--header-bg)',
         color: 'var(--header-text)',
         borderColor: 'var(--border)',
-        // Safe area para iPhone notch
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
@@ -114,13 +124,16 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
             </span>
           </motion.button>
 
-          {/* ── Desktop Nav ── */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Navegação principal">
+          {/* ── Desktop/Laptop Nav - Visível sempre no PC, oculta no Mobile ── */}
+          <nav
+            className={`${isMobileDevice ? 'hidden lg:flex' : 'flex'} items-center gap-1 overflow-x-auto no-scrollbar`}
+            aria-label="Navegação principal"
+          >
             {navItems.map(item => (
               <button
                 key={item.key}
                 onClick={() => navigate(item.key)}
-                className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer"
+                className="px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer whitespace-nowrap"
                 style={{
                   backgroundColor: currentPage === item.key ? 'var(--accent)' : 'transparent',
                   color: currentPage === item.key ? 'white' : 'var(--header-text)',
@@ -265,26 +278,28 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
               </motion.button>
             )}
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2 rounded-lg cursor-pointer"
-              style={{ minHeight: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
-              aria-expanded={menuOpen}
-            >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={menuOpen ? 'x' : 'menu'}
-                  initial={{ rotate: -90, opacity: 0 }}
-                  animate={{ rotate: 0, opacity: 1 }}
-                  exit={{ rotate: 90, opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {menuOpen ? <X size={22} /> : <Menu size={22} />}
-                </motion.div>
-              </AnimatePresence>
-            </button>
+            {/* Mobile Menu Button - Exibido APENAS em sistemas mobile (Android/iOS) */}
+            {isMobileDevice && (
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="lg:hidden p-2 rounded-lg cursor-pointer flex items-center justify-center"
+                style={{ minHeight: '44px', minWidth: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+                aria-expanded={menuOpen}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={menuOpen ? 'x' : 'menu'}
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    {menuOpen ? <X size={22} /> : <Menu size={22} />}
+                  </motion.div>
+                </AnimatePresence>
+              </button>
+            )}
           </div>
         </div>
 
@@ -339,7 +354,6 @@ export default function Header({ currentPage, onNavigate }: HeaderProps) {
             <nav
               className="px-4 py-3 space-y-1"
               style={{
-                // Safe area bottom caso o menu se expanda até lá
                 paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
               }}
               aria-label="Menu mobile"

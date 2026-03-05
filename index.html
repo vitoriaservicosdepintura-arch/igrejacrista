@@ -1,77 +1,100 @@
 <!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
 
-    <!-- ═══ VIEWPORT & MOBILE ═══ -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, viewport-fit=cover" />
+<head>
+  <meta charset="UTF-8" />
 
-    <!-- ═══ SEO ═══ -->
-    <title>Igreja Cristã - Plataforma Interativa</title>
-    <meta name="description" content="Plataforma cristã interativa moderna - Conectando vidas através da fé, amor e esperança" />
-    <meta name="keywords" content="igreja, cristã, fé, eventos, culto, doação, bíblia, quiz" />
-    <meta name="author" content="Igreja Cristã" />
-    <meta name="robots" content="index, follow" />
+  <!-- ═══ VIEWPORT & MOBILE (iOS + Android) ═══ -->
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-    <!-- ═══ PWA / THEME ═══ -->
-    <meta name="theme-color" content="#1B2A4A" />
-    <meta name="color-scheme" content="light dark" />
-    <link rel="manifest" href="/manifest.json" />
+  <!-- ═══ SEO ═══ -->
+  <title>Igreja Cristã - Plataforma Interativa</title>
+  <meta name="description"
+    content="Plataforma cristã interativa moderna - Conectando vidas através da fé, amor e esperança" />
+  <meta name="keywords" content="igreja, cristã, fé, eventos, culto, doação, bíblia, quiz" />
+  <meta name="author" content="Igreja Cristã" />
+  <meta name="robots" content="index, follow" />
 
-    <!-- ═══ ANDROID CHROME ═══ -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="application-name" content="Igreja Cristã" />
+  <!-- ═══ PWA / THEME ═══ -->
+  <meta name="theme-color" content="#1B2A4A" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1525" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="manifest" href="/manifest.json" />
 
-    <!-- ═══ APPLE iOS ═══ -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Igreja Cristã" />
-    <meta name="format-detection" content="telephone=no" />
+  <!-- ═══ ANDROID / CHROME ═══ -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Igreja Cristã" />
 
-    <!-- ═══ APPLE TOUCH ICONS ═══ -->
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-128x128.png" />
-    <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-96x96.png" />
+  <!-- ═══ APPLE iOS ═══ -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Igreja Cristã" />
+  <meta name="format-detection" content="telephone=no" />
 
-    <!-- ═══ FAVICON ═══ -->
-    <link rel="icon" type="image/png" href="/icons/icon-96x96.png" />
-    <link rel="shortcut icon" href="/icons/icon-96x96.png" />
+  <!-- ═══ APPLE TOUCH ICONS ═══ -->
+  <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
+  <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+  <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.png" />
+  <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-128x128.png" />
+  <link rel="apple-touch-icon" sizes="76x76" href="/icons/icon-96x96.png" />
 
-    <!-- ═══ OPEN GRAPH (Social Share) ═══ -->
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Igreja Cristã - Plataforma Interativa" />
-    <meta property="og:description" content="Conectando vidas através da fé, amor e esperança" />
-    <meta property="og:locale" content="pt_BR" />
+  <!-- ═══ FAVICON ═══ -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
+  <link rel="icon" type="image/png" sizes="96x96" href="/icons/icon-96x96.png" />
+  <link rel="shortcut icon" href="/icons/icon-96x96.png" />
 
-    <!-- ═══ TWITTER CARD ═══ -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Igreja Cristã - Plataforma Interativa" />
-    <meta name="twitter:description" content="Conectando vidas através da fé, amor e esperança" />
+  <!-- ═══ OPEN GRAPH (Social Share) ═══ -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Igreja Cristã - Plataforma Interativa" />
+  <meta property="og:description" content="Conectando vidas através da fé, amor e esperança" />
+  <meta property="og:locale" content="pt_BR" />
+  <meta property="og:image" content="/icons/icon-512x512.png" />
 
-    <!-- ═══ FONTS ═══ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- ═══ TWITTER CARD ═══ -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Igreja Cristã - Plataforma Interativa" />
+  <meta name="twitter:description" content="Conectando vidas através da fé, amor e esperança" />
 
-    <!-- ═══ PREVENT FLASH OF UNSTYLED ═══ -->
-    <style>
-      html { background-color: #1B2A4A; }
-      body { margin: 0; padding: 0; }
-      #root { min-height: 100dvh; }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-    <!-- Register Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function () {
-          navigator.serviceWorker.register('/sw.js').catch(function () {});
-        });
-      }
-    </script>
-  </body>
+  <!-- ═══ FONTS ═══ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- ═══ PREVENT FLASH OF UNSTYLED ═══ -->
+  <style>
+    html {
+      background-color: #1B2A4A;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    /* dvh para mobile real, fallback vh para browsers antigos */
+    #root {
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+  <!-- Register Service Worker (PWA offline support) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () { });
+      });
+    }
+  </script>
+</body>
+
 </html>

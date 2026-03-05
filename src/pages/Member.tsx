@@ -291,7 +291,8 @@ export default function Member() {
         user_id: user.id || null,
         name: user.name,
         text: prayerText,
-        prayers_count: 0
+        prayers_count: 0,
+        source: 'member'
       };
       const { data, error } = await supabase.from('prayer_wall').insert([newPrayer]).select('*').single();
       if (!error && data) {
@@ -827,9 +828,14 @@ export default function Member() {
                       {prayer.name.charAt(0)}
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{prayer.name}</span>
-                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {prayer.time}</span>
+                        {prayer.source === 'public' && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-600 flex items-center gap-1 border border-blue-200">
+                            🌐 {lang === 'pt' ? 'PEDIDO PÚBLICO' : 'PUBLIC REQUEST'}
+                          </span>
+                        )}
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>• {prayer.time || (prayer.created_at ? new Date(prayer.created_at).toLocaleTimeString(lang === 'pt' ? 'pt-BR' : 'en-US', { hour: '2-digit', minute: '2-digit' }) : '')}</span>
                       </div>
                       <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
                         {getLocalized(prayer.text, lang)}

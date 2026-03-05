@@ -16,7 +16,7 @@ export default defineConfig({
     },
   },
   build: {
-    // Chunks separados para melhor cache no mobile
+    // Separação de chunks para melhor cache
     rollupOptions: {
       output: {
         manualChunks: {
@@ -27,22 +27,21 @@ export default defineConfig({
         },
       },
     },
-    // Gera source maps para debug
     sourcemap: false,
-    // Assets inline até 4kb (ícones pequenos)
     assetsInlineLimit: 4096,
-    // Target mobile browsers modernos
+    // Suporte a Chrome 80+, Firefox 80+, Safari 13+, Edge 80+, iOS 13+, Android 7+
     target: ["es2020", "chrome80", "firefox80", "safari13", "edge80"],
   },
-  // Servidor de desenvolvimento
+  // Servidor de desenvolvimento — exposto na rede local para testar no celular
   server: {
-    host: true, // Expõe na rede local (para testar no celular)
+    host: true,
     port: 5173,
     strictPort: false,
   },
-  // Preview (npm run preview)
   preview: {
     host: true,
     port: 4173,
   },
 });
+
+
