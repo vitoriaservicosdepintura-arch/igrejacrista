@@ -607,6 +607,7 @@ export default function Member() {
   // Logged in member area
   const tabs = [
     { key: 'prayer', label: t('member.prayer_wall'), icon: <Heart size={16} /> },
+    { key: 'biblia', label: lang === 'pt' ? 'Bíblia Online' : 'Online Bible', icon: <BookOpen size={16} /> },
     { key: 'ranking', label: t('member.ranking'), icon: <Trophy size={16} /> },
     {
       key: 'materials',
@@ -622,7 +623,6 @@ export default function Member() {
         </div>
       )
     },
-    { key: 'biblia', label: lang === 'pt' ? 'Bíblia Online' : 'Online Bible', icon: <BookOpen size={16} /> },
     { key: 'profile', label: lang === 'pt' ? 'Meu Perfil' : 'My Profile', icon: <Settings size={16} /> },
   ];
 
@@ -766,15 +766,15 @@ export default function Member() {
               onClick={() => setActiveTab(tab.key)}
               className="flex items-center gap-2 px-5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition cursor-pointer shrink-0"
               style={{
-                backgroundColor: activeTab === tab.key ? 'var(--accent)' : 'var(--bg-card)',
-                color: activeTab === tab.key ? 'white' : 'var(--text-primary)',
-                border: `1px solid ${activeTab === tab.key ? 'var(--accent)' : 'var(--border)'}`,
-                boxShadow: activeTab === tab.key ? '0 10px 20px -5px var(--accent-light)' : 'none',
+                backgroundColor: activeTab === tab.key ? 'var(--accent)' : (tab.key === 'biblia' ? 'var(--accent-light)' : 'var(--bg-card)'),
+                color: activeTab === tab.key ? 'white' : (tab.key === 'biblia' ? 'var(--accent)' : 'var(--text-primary)'),
+                border: activeTab === tab.key ? '1px solid var(--accent)' : (tab.key === 'biblia' ? '1px solid var(--accent)' : '1px solid var(--border)'),
+                boxShadow: tab.key === 'biblia' ? '0 0 15px rgba(200,164,90,0.2)' : (activeTab === tab.key ? '0 10px 20px -5px var(--accent-light)' : 'none'),
               }}
-              whileHover={{ y: -2 }}
+              whileHover={{ y: -2, scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              {tab.icon}
+              <span className={tab.key === 'biblia' ? 'animate-pulse' : ''}>{tab.icon}</span>
               <span className="whitespace-nowrap">{tab.label}</span>
             </motion.button>
           ))}
